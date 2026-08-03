@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公告管理系统</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f0f2f5;
+  color: #1e293b;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部导航 */
+.topbar {
+  background: #1a56db;
+  color: #fff;
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(26,86,219,0.3);
+}
+.topbar-brand { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.topbar-brand span { font-size: 1.4rem; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.topbar-user { font-size: 0.88rem; opacity: 0.85; }
+.btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s;
+}
+.btn-blue { background: #fff; color: #1a56db; }
+.btn-blue:hover { background: #f0f4ff; }
+.btn-primary { background: #1a56db; color: #fff; }
+.btn-primary:hover { background: #1340b0; }
+.btn-ghost { background: transparent; color: rgba(255,255,255,0.85); border: 1.5px solid rgba(255,255,255,0.3); }
+.btn-ghost:hover { background: rgba(255,255,255,0.1); }
+.btn-danger { background: #fff; color: #dc2626; border: 1.5px solid #fecaca; }
+.btn-danger:hover { background: #fef2f2; }
+.btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 主内容 */
+.main { max-width: 900px; width: 100%; margin: 0 auto; padding: 32px 24px; flex: 1; }
+
+/* 统计卡片 */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.stat-card strong { display: block; font-size: 2.2rem; font-weight: 900; color: #1a56db; line-height: 1; margin-bottom: 6px; }
+.stat-card span { font-size: 0.82rem; color: #94a3b8; font-weight: 500; }
+
+/* 区块标题 */
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 发布卡片 */
+.post-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 28px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: 0.2s;
+  outline: none;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #1a56db;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+}
+.form-group textarea { resize: vertical; min-height: 120px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.form-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* 公告列表 */
+.list-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.list-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.list-header h3 { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
+.ann-item {
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: 0.15s;
+}
+.ann-item:last-child { border-bottom: none; }
+.ann-item:hover { background: #f8fafc; }
+.ann-body { flex: 1; min-width: 0; }
+.ann-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.ann-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: 50px;
+}
+.ann-badge.tz { background: #fef3c7; color: #92400e; }
+.ann-badge.xw { background: #e8effc; color: #1a56db; }
+.ann-badge.hd { background: #f0fdf4; color: #15803d; }
+.ann-date { font-size: 0.75rem; color: #94a3b8; }
+.ann-title { font-size: 0.95rem; font-weight: 600; color: #0f172a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ann-excerpt { font-size: 0.8rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ann-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* 加载/空状态 */
+.loading, .empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #94a3b8;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #1a56db;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-icon { font-size: 2.5rem; margin-bottom: 8px; opacity: 0.4; }
+
+/* 登录页 */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a56db 0%, #0f172a 100%);
+  padding: 24px;
+}
+.login-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.login-icon { font-size: 3rem; margin-bottom: 12px; }
+.login-card h1 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+.login-card p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 32px; }
+.login-form .form-group { text-align: left; margin-bottom: 16px; }
+.login-form .form-group label { font-size: 0.8rem; }
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: 4px;
+}
+.login-btn:hover { background: #1340b0; }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-align: left;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* 确认弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+.modal-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-box h3 { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+.modal-box p { font-size: 0.88rem; color: #64748b; margin-bottom: 24px; }
+.modal-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fff;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  animation: toastIn 0.3s ease;
+  max-width: 340px;
+}
+.toast-success { background: #16a34a; }
+.toast-error { background: #dc2626; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 编辑弹窗 */
+.edit-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998;
+  backdrop-filter: blur(4px);
+}
+.edit-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.edit-box h3 { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat-card { padding: 16px 8px; }
+  .stat-card strong { font-size: 1.6rem; }
+  .ann-actions .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- 登录页 -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-card">
+    <div class="login-icon">📋</div>
+    <h1>公告管理系统</h1>
+    <p>管理员登录后方可发布公告</p>
+    <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>账号</label>
+        <input type="text" id="loginUser" placeholder="请输入管理员账号" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="loginPass" placeholder="请输入密码" required autocomplete="current-password">
+      </div>
+      <div class="login-error" id="loginErr"></div>
+      <button type="submit" class="login-btn" id="loginBtn">登 录</button>
+    </form>
+  </div>
+</div>
+
+<!-- 管理后台 -->
+<div id="adminPage" style="display:none">
+  <header class="topbar">
+    <div class="topbar-brand"><span>📋</span> 公告管理系统</div>
+    <div class="topbar-actions">
+      <span class="topbar-user" id="welcomeUser"></span>
+      <button class="btn btn-ghost" onclick="handleLogout()">退出登录</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- 统计 -->
+    <div class="stats">
+      <div class="stat-card"><strong id="statTotal">-</strong><span>全部公告</span></div>
+      <div class="stat-card"><strong id="statTz">-</strong><span>通知公告</span></div>
+      <div class="stat-card"><strong id="statHd">-</strong><span>校园活动</span></div>
+    </div>
+
+    <!-- 发布 -->
+    <div class="post-card">
+      <div class="section-title">✏️ 发布公告</div>
+      <form id="postForm" onsubmit="handlePost(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>公告标题 <span style="color:#ef4444">*</span></label>
+            <input type="text" id="postTitle" placeholder="请输入公告标题" required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>分类 <span style="color:#ef4444">*</span></label>
+            <select id="postCat" required>
+              <option value="通知">📢 通知公告</option>
+              <option value="新闻">📰 校园新闻</option>
+              <option value="活动">🎉 学生活动</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>正文内容 <span style="color:#ef4444">*</span></label>
+          <textarea id="postContent" placeholder="请输入公告正文内容..." required maxlength="5000"></textarea>
+        </div>
+        <div class="form-error" id="postErr"></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="clearForm()" style="color:#64748b;border-color:#e2e8f0">清空</button>
+          <button type="submit" class="btn btn-primary" id="postBtn">立即发布</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 公告列表 -->
+    <div class="list-card">
+      <div class="list-header">
+        <h3>📋 公告列表</h3>
+        <button class="btn btn-sm" onclick="loadList()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">🔄 刷新</button>
+      </div>
+      <div id="annList">
+        <div class="loading"><div class="spinner"></div><p>加载中...</p></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ---- 配置 ----
+// 修改这里指向你的后端 API 地址
+const API_BASE = '/api';
+
+// ---- 本地存储 ----
+const TOKEN_KEY = 'ann_token';
+const USER_KEY = 'ann_user';
+
+// ---- Auth ----
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
+function getUser() { try { return JSON.parse(localStorage.getItem(USER_KEY) \|\| 'null'); } catch { return null; } }
+
+function showLogin() {
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('adminPage').style.display = 'none';
+}
+function showAdmin() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('adminPage').style.display = 'block';
+  document.getElementById('welcomeUser').textContent = '👤 ' + (getUser()?.username || '管理员');
+  loadList();
+}
+
+// ---- API 请求 ----
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  const token = getToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API_BASE + path, { ...options, headers });
+  if (res.status === 401) { handleLogout(); throw new Error('登录已过期'); }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || '请求失败');
+  return data;
+}
+
+// ---- 登录 ----
+async function handleLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = '登录中...';
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    showAdmin();
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '登 录';
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  showLogin();
+}
+
+// ---- 列表 ----
+function formatDate(s) {
+  const d = new Date(s);
+  const M = String(d.getMonth()+1).padStart(2,'0');
+  const D = String(d.getDate()).padStart(2,'0');
+  return `${d.getFullYear()}-${M}-${D}`;
+}
+
+function catBadge(cat) {
+  const map = { '通知': 'tz', '新闻': 'xw', '活动': 'hd' };
+  return `<span class="ann-badge ${map[cat]||'xw'}">${cat}</span>`;
+}
+
+function esc(s) {
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+async function loadList() {
+  const el = document.getElementById('annList');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><p>加载中...</p></div>';
+  try {
+    const data = await api('/announcements');
+    const items = (data.result || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    updateStats(items);
+    if (!items.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>暂无公告，点击上方发布按钮</p></div>';
+      return;
+    }
+    el.innerHTML = items.map(item => `
+      <div class="ann-item">
+        <div class="ann-body">
+          <div class="ann-meta">${catBadge(item.category)}<span class="ann-date">${formatDate(item.created_at)}</span></div>
+          <div class="ann-title">${esc(item.title)}</div>
+          <div class="ann-excerpt">${esc(item.content || '（无正文）')}</div>
+        </div>
+        <div class="ann-actions">
+          <button class="btn btn-sm btn-primary" onclick="editAnn('${item.id}')">编辑</button>
+          <button class="btn btn-sm btn-danger" onclick="confirmDel('${item.id}')">删除</button>
+        </div>
+      </div>`).join('');
+  } catch (err) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${esc(err.message)}</p></div>`;
+  }
+}
+
+function updateStats(items) {
+  document.getElementById('statTotal').textContent = items.length;
+  document.getElementById('statTz').textContent = items.filter(i => i.category === '通知').length;
+  document.getElementById('statHd').textContent = items.filter(i => i.category === '活动').length;
+}
+
+// ---- 发布 ----
+async function handlePost(e) {
+  e.preventDefault();
+  const title = document.getElementById('postTitle').value.trim();
+  const category = document.getElementById('postCat').value;
+  const content = document.getElementById('postContent').value.trim();
+  const btn = document.getElementById('postBtn');
+  const errEl = document.getElementById('postErr');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = '发布中...';
+  try {
+    await api('/announcements', { method: 'POST', body: JSON.stringify({ title, category, content }) });
+    showToast('发布成功！', 'success');
+    clearForm();
+    loadList();
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '立即发布';
+  }
+}
+
+function clearForm() {
+  document.getElementById('postForm').reset();
+  document.getElementById('postErr').style.display = 'none';
+}
+
+// ---- 编辑 ----
+async function editAnn(id) {
+  try {
+    const data = await api('/announcements/' + id);
+    const item = data.result;
+    const catOptions = ['通知','新闻','活动'].map(c =>
+      `<option value="${c}" ${item.category===c?'selected':''}>${c}</option>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'edit-modal';
+    overlay.id = 'editModal';
+    overlay.innerHTML = `
+      <div class="edit-box">
+        <h3>✏️ 编辑公告</h3>
+        <div class="form-group"><label>标题 <span style="color:#ef4440">*</span></label>
+          <input type="text" id="editTitle" value="${esc(item.title)}" maxlength="100"></div>
+        <div class="form-row">
+          <div class="form-group"><label>分类</label><select id="editCat">${catOptions}</select></div>
+        </div>
+        <div class="form-group"><label>正文</label>
+          <textarea id="editContent">${esc(item.content||'')}</textarea></div>
+        <div id="editErr" style="display:none;color:#dc2626;font-size:0.85rem;margin-bottom:12px"></div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button class="btn" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0" onclick="closeEdit()">取消</button>
+          <button class="btn btn-primary" onclick="doEdit('${id}')">保存修改</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function doEdit(id) {
+  const title = document.getElementById('editTitle').value.trim();
+  const category = document.getElementById('editCat').value;
+  const content = document.getElementById('editContent').value.trim();
+  const errEl = document.getElementById('editErr');
+  errEl.style.display = 'none';
+  try {
+    await api('/announcements/' + id, { method: 'PUT', body: JSON.stringify({ title, category, content }) });
+    showToast('修改成功', 'success');
+    closeEdit();
+    loadList();
+  } catch (err) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+}
+
+function closeEdit() { document.getElementById('editModal')?.remove(); }
+
+// ---- 删除 ----
+function confirmDel(id) {
+  const m = document.createElement('div');
+  m.className = 'modal-overlay';
+  m.id = 'confirmModal';
+  m.innerHTML = `
+    <div class="modal-box">
+      <h3>确认删除</h3>
+      <p>删除后无法恢复，确定要删除吗？</p>
+      <div class="modal-actions">
+        <button class="btn" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0" onclick="closeConfirm()">取消</button>
+        <button class="btn btn-danger" onclick="doDelete('${id}')">确认删除</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+}
+function closeConfirm() { document.getElementById('confirmModal')?.remove(); }
+
+async function doDelete(id) {
+  closeConfirm();
+  try {
+    await api('/announcements/' + id, { method: 'DELETE' });
+    showToast('删除成功', 'success');
+    loadList();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ---- Toast ----
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ---- 初始化 ----
+(function() {
+  if (getToken()) showAdmin(); else showLogin();
+})();
+</script>
+</body>
+</html>
