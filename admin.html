@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理后台 - 信阳市第五高级中学</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div class="admin-wrap" id="app">
+
+    <!-- Login Panel -->
+    <div class="login-panel" id="loginPanel">
+      <div class="login-card">
+        <div class="login-logo">🎓</div>
+        <h1>管理员登录</h1>
+        <p>信阳市第五高级中学管理后台</p>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="username">账号</label>
+            <input type="text" id="username" placeholder="请输入管理员账号" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" placeholder="请输入密码" required autocomplete="current-password" />
+          </div>
+          <div class="form-error" id="loginError" style="display:none"></div>
+          <button type="submit" class="btn-login" id="loginBtn">登 录</button>
+        </form>
+        <a href="index.html" class="back-home">← 返回官网首页</a>
+      </div>
+    </div>
+
+    <!-- Dashboard Panel -->
+    <div class="dashboard" id="dashboard" style="display:none">
+      <!-- Header -->
+      <header class="dash-header">
+        <div class="dash-header-inner">
+          <div class="dash-title">
+            <span>🎓</span>
+            <h2>信阳市第五高级中学 <span>管理后台</span></h2>
+          </div>
+          <div class="dash-actions">
+            <a href="index.html" class="dash-btn dash-btn-ghost" target="_blank">👁 查看官网</a>
+            <button class="dash-btn dash-btn-danger" onclick="handleLogout()">退出登录</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <div class="dash-tabs">
+        <button class="dash-tab active" data-tab="list" onclick="switchTab('list')">📋 公告列表</button>
+        <button class="dash-tab" data-tab="post" onclick="switchTab('post')">✏️ 发布公告</button>
+        <button class="dash-tab" data-tab="edit" onclick="switchTab('edit')">🗑️ 管理公告</button>
+      </div>
+
+      <!-- Tab: 公告列表 -->
+      <div class="tab-content" id="tab-list">
+        <div class="dash-toolbar">
+          <h3>所有公告</h3>
+          <button class="dash-btn dash-btn-primary" onclick="switchTab('post')">+ 发布新公告</button>
+        </div>
+        <div class="announcements-list" id="adminList">
+          <div class="loading-state"><div class="spinner"></div><p>加载中...</p></div>
+        </div>
+      </div>
+
+      <!-- Tab: 发布公告 -->
+      <div class="tab-content" id="tab-post" style="display:none">
+        <div class="dash-form-card">
+          <h3>发布新公告</h3>
+          <form id="postForm" onsubmit="handlePost(event)">
+            <div class="form-group">
+              <label for="postTitle">公告标题 <span class="required">*</span></label>
+              <input type="text" id="postTitle" placeholder="请输入公告标题" required maxlength="100" />
+            </div>
+            <div class="form-group">
+              <label for="postCategory">分类 <span class="required">*</span></label>
+              <select id="postCategory" required>
+                <option value="通知">📢 通知公告</option>
+                <option value="新闻">📰 校园新闻</option>
+                <option value="活动">🎉 学生活动</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="postContent">正文内容 <span class="required">*</span></label>
+              <textarea id="postContent" placeholder="请输入公告正文内容..." required rows="10" maxlength="5000"></textarea>
+              <small class="char-count"><span id="charCount">0</span> / 5000 字</small>
+            </div>
+            <div class="form-error" id="postError" style="display:none"></div>
+            <div class="form-actions">
+              <button type="button" class="dash-btn dash-btn-ghost" onclick="switchTab('list')">取消</button>
+              <button type="submit" class="dash-btn dash-btn-primary" id="postBtn">发布公告</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tab: 管理公告 -->
+      <div class="tab-content" id="tab-edit" style="display:none">
+        <div class="dash-toolbar">
+          <h3>管理公告</h3>
+        </div>
+        <div class="announcements-list" id="editList">
+          <div class="loading-state"><div class="spinner"></div><p>加载中...</p></div>
+        </div>
+      </div>
+
+    </div><!-- /dashboard -->
+  </div><!-- /app -->
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

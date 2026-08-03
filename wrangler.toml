@@ -1,0 +1,8 @@
+name = "xinyang-no5-school"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "NO5_D1"
+database_name = "no5_school_db"
+database_id = "9312fcc7-831e-42fd-8ba3-efe019298ca2"
