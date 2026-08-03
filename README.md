@@ -1,174 +1,133 @@
 # 信阳市第五高级中学 官网
 
-> 现代大厂风格学校官网，公告系统（访客可看，管理员可发），基于 Cloudflare Pages + Workers + D1 部署。
+> 现代大厂风格学校官网，公告系统（访客可看，管理员可发），基于 Cloudflare Pages + Workers/Pages Functions + D1 部署。
 
 ---
 
-## 📁 项目结构
+## 功能一览
+
+| 功能 | 说明 |
+|------|------|
+| 学校简介 | 学校历史、荣誉、联系方式 |
+| 校园动态 | 公告列表（访客可查看，支持分类筛选） |
+| 特色教育 | 美术、播音主持、音乐、体育 |
+| 管理后台 | 登录后发布 / 编辑 / 删除公告 |
+| 响应式 | 完美适配手机、平板、桌面 |
+
+---
+
+## 项目结构
 
 ```
 xinyang-no5-highschool/
-├── index.html          # 官网首页
-├── admin.html          # 管理后台（登录/发公告/管理）
-├── wrangler.toml       # Cloudflare Workers 配置
+├── index.html              # 官网首页
+├── admin.html              # 管理后台
+├── wrangler.toml           # Cloudflare 配置（含 D1 数据库绑定）
 ├── public/
-│   ├── _redirects      # Cloudflare Pages SPA 路由
-│   └── _headers        # 安全头配置
+│   ├── _redirects          # Cloudflare Pages SPA 路由
+│   └── _headers            # 安全头配置
 ├── css/
-│   ├── style.css       # 官网样式（现代大厂风格）
-│   └── admin.css       # 管理后台样式
+│   ├── style.css           # 官网样式
+│   └── admin.css           # 管理后台样式
 ├── js/
-│   ├── main.js         # 官网交互（公告加载/动画/导航）
-│   └── admin.js        # 管理后台逻辑
+│   ├── main.js             # 官网交互
+│   └── admin.js            # 管理后台逻辑
+├── functions/
+│   └── api/
+│       └── [[catchall]].js # Pages Functions API（处理所有 /api/* 请求）
 └── src/
-    └── index.js        # Cloudflare Workers 后端 API
+    └── index.js            # Cloudflare Workers 备用后端
 ```
 
 ---
 
-## 🚀 部署步骤（按顺序执行）
+## 部署步骤
 
-### 第一步：创建 D1 数据库
+### 第一步：上传到 GitHub ✅（已完成）
 
-```bash
-# 进入项目目录
-cd xinyang-no5-highschool
+仓库地址：https://github.com/18738672605zyc-a11y/xinyang-no5-highschool
 
-# 创建 D1 数据库
-npx wrangler d1 create no5_school_db
+### 第二步：创建 D1 数据库
+
+1. 打开 [dash.cloudflare.com](https://dash.cloudflare.com)
+2. **Workers & Pages** → 选择你的 Pages 项目 → **Settings** → **Functions**
+3. 找到 **D1 Database Bindings**，点击 **Bind a D1 Database**
+4. 点击 **Create new D1 Database**，名字填写 `no5_school_db`，点击 **Create**
+5. 绑定完成后，把绑定名称填写为 **`NO5_D1`**，点击 **Save**
+
+> 同时在这里找到新创建 D1 的 **Database ID**（格式 `9312fcc7-831e-42fd-8ba3-efe019298ca2`），填入 `wrangler.toml` 中的 `database_id` 字段。
+
+### 第三步：连接 GitHub 并部署
+
+1. 在 Cloudflare Dashboard 中进入你的 Pages 项目
+2. **Deployments** → **Retry deployment**（或重新 Connect GitHub 仓库）
+3. 等待部署完成
+
+### 第四步：初始化管理员
+
+部署成功后，在浏览器访问你的域名，执行一次初始化：
+
+```
+https://你的域名/api/admin/seed
 ```
 
-> 执行后会输出 `database_id`，复制它，填入 `wrangler.toml` 中的 `database_id` 字段。
-
-### 第二步：更新 wrangler.toml
-
-编辑 `wrangler.toml`，把 `YOUR_D1_DATABASE_ID_HERE` 替换为上一步复制的 ID：
-
-```toml
-[[d1_databases]]
-binding = "NO5_D1"
-database_name = "no5_school_db"
-database_id = "你的实际database_id"
+返回示例：
+```json
+{"success":true,"message":"管理员已创建：账号=admin，密码=no52026，请立即修改密码！"}
 ```
 
-### 第三步：部署 Workers
+### 第五步：登录管理后台
 
-```bash
-# 部署到 Cloudflare Workers
-npx wrangler deploy
-
-# 部署成功后会输出 Workers URL，例如：
-# https://xinyang-no5-school.xxx.workers.dev
+```
+https://你的域名/admin.html
 ```
 
-### 第四步：部署前端到 Cloudflare Pages
+- 账号：`admin`
+- 密码：`no52026`
 
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. 进入 **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
-3. 上传本项目文件夹，或连接 GitHub 仓库
-4. **Build settings:**
-   - Build command: （留空，纯静态）
-   - Build output directory: `/`（或 `.`）
-5. 点击 **Deploy**
-
-> 部署完成后，你会获得一个 `*.pages.dev` 域名（或你自己的绑定域名）。
-
-### 第五步：初始化默认管理员
-
-Workers 部署成功后，用以下命令创建第一个管理员账户：
-
-```bash
-# 将 YOUR_WORKERS_URL 替换为第三步获得的 Workers URL
-curl -X POST "https://YOUR_WORKERS_URL/api/admin/seed" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"no52026"}'
-```
-
-**✅ 初始化管理员账号：`admin` / `no52026`**
-> ⚠️ 首次登录后请立即修改密码！
+> ⚠️ 首次登录后请立即修改密码或创建新管理员账户！
 
 ---
 
-## 🔧 后台 API 地址配置
-
-Workers 部署后，需要告诉前端 `api.js`（或 `main.js`）API 在哪里。
-
-### 方式 A：通过代理（推荐，SPA 跨域友好）
-
-在 Cloudflare Pages 项目中，添加一个 **Functions** 代理：
-
-在项目根目录创建 `functions/api/[[catchall]].js`：
-
-```javascript
-export async function onRequest({ request, next, env }) {
-  const url = new URL(request.url);
-  const path = url.pathname.replace('/api', '');
-  const apiUrl = 'https://YOUR_WORKERS_URL' + path + url.search;
-  const res = await fetch(apiUrl, {
-    method: request.method,
-    headers: { ...Object.fromEntries(request.headers) },
-    body: request.body
-  });
-  return new Response(res.body, { status: res.status, headers: res.headers });
-}
-```
-
-> 这样前端 `fetch('/api/...')` 即可自动代理到 Workers，无需修改 `API_BASE`。
-
-### 方式 B：直接配置 Workers URL（简单）
-
-编辑 `js/main.js` 和 `js/admin.js`，把：
-```javascript
-const API_BASE = '/api';
-```
-改为：
-```javascript
-const API_BASE = 'https://YOUR_WORKERS_URL/api';
-```
-
----
-
-## 🛡️ 安全建议
-
-- [ ] **API Key 安全**：不要把 Cloudflare API Token 提交到 Git 仓库，加入 `.gitignore`
-- [ ] **重置默认密码**：首次登录后立即修改 `admin` 账号密码
-- [ ] **添加更多管理员**：`POST /api/admin/users`（需已登录）
-- [ ] **绑定自己的域名**：在 Cloudflare Pages 设置中绑定已备案域名
-- [ ] **关闭 Workers 日志**：生产环境关闭 `wrangler dev` 调试日志
-
----
-
-## 🔑 默认管理员
+## 默认管理员
 
 | 账号 | 密码 |
 |------|------|
 | admin | no52026 |
 
-> 首次部署后立即登录并修改密码！
+---
+
+## 主要 API 接口
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| GET | `/api/announcements` | 获取公告列表 | 否 |
+| GET | `/api/announcements?category=通知` | 按分类筛选 | 否 |
+| GET | `/api/announcements/:id` | 获取单条公告 | 否 |
+| POST | `/api/auth/login` | 管理员登录 | 否 |
+| POST | `/api/announcements` | 发布公告 | ✅ |
+| PUT | `/api/announcements/:id` | 修改公告 | ✅ |
+| DELETE | `/api/announcements/:id` | 删除公告 | ✅ |
+| POST | `/api/admin/seed` | 初始化管理员 | 否 |
+| GET | `/api/admin/users` | 列出管理员 | ✅ |
+| POST | `/api/admin/users` | 创建管理员 | ✅ |
 
 ---
 
-## 📝 主要功能
-
-| 功能 | 说明 |
-|------|------|
-| 学校简介 | 学校历史、荣誉、联系方式 |
-| 校园动态 | 公告列表（访客可查看） |
-| 特色教育 | 美术、播音主持、音乐、体育 |
-| 管理后台 | 登录后发布/编辑/删除公告 |
-| 响应式 | 完美适配手机、平板、桌面 |
-
----
-
-## 🛠️ 本地开发
+## 本地开发
 
 ```bash
-# 本地预览前端
+# 预览前端
 npx wrangler pages dev .
 
-# 本地测试 Workers
-npx wrangler dev
-
-# 查看 D1 数据
+# 查看 D1 数据（需先配置 CLOUDFLARE_API_TOKEN）
 npx wrangler d1 execute no5_school_db --local --command "SELECT * FROM announcements"
 ```
+
+---
+
+## 安全建议
+
+- [ ] 首次登录后立即修改 `admin` 密码
+- [ ] 不要把 Cloudflare API Token 提交到 Git
+- [ ] D1 数据库绑定只给 `NO5_D1` 名称，不要暴露其他信息
